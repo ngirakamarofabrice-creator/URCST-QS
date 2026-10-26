@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UR-CST NYARUGENGE QS HUB | Year 2 Quantity Surveying & Construction Management</title>
+
+    <!-- Chosen Palette: Sandstone Architectural Light Theme -->
+    <!-- Application Structure Plan:
+        Designed as a comprehensive 5-section Single Page Application tailored for UR-CST Nyarugenge QS Year 2 students and developers/instructors:
+        1. Auth Modal & Bar: Simulates account creation, login, and role switching (Student vs. Admin/Developer).
+        2. Dashboard & Interactive Analytics: Focuses on Construction Economics (NPV, LCC) & Construction Management tools (S-Curve, Cash Flow).
+        3. Measurement & Estimating Suite: Live SMM rulebook + interactive 2D Centerline Wall Takeoff Calculator.
+        4. Interactive Quiz & Marks Hub: Dual-view for taking student quizzes and an Admin/Developer panel to upload new questions and log marks.
+        5. File & Material Repository: Developer UI to upload lecture slides, drawings, and site images + Student download/viewing area.
+        6. Interactive Contact & Department Directory: Updated with direct department contacts (quantitysurveying80@gmail.com, 0793846279 CP, +250 792 523 123 CPN), physical location, and interactive message portal.
+        WHY: Provides end-to-end functionality for both learning (economics, measurement) and platform management (developer upload, quiz creation).
+    -->
+    <!-- Visualization & Content Choices:
+        - Economics Cashflow & S-Curve: Chart.js Line Chart for visual cash flow forecasting.
+        - Knowledge Mastery Breakdown: Chart.js Radar Chart for QS competency assessment.
+        - Material/Image Uploads: Interactive HTML5 file drag-and-drop zone with simulated JS gallery preview.
+        - Interactive Quiz Builder: Dynamic Vanilla JS form array builder.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used.
+    -->
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 340px;
+            }
+        }
+        .modal-blur {
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Top Announcement & Auth Bar -->
+    <div class="bg-amber-900 text-amber-100 text-xs py-1.5 px-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="bg-amber-700 text-white font-bold px-2 py-0.5 rounded text-[10px]">UR-CST</span>
+            <span>University of Rwanda • College of Science & Technology • Nyarugenge Campus</span>
+        </div>
+        <div id="auth-status-bar" class="flex items-center space-x-3">
+            <span id="user-display" class="font-semibold text-amber-300">Guest User</span>
+            <button onclick="openAuthModal('login')" id="btn-auth-action" class="bg-amber-500 hover:bg-amber-400 text-stone-950 px-2.5 py-0.5 rounded font-bold text-[11px] transition">Log In / Sign Up</button>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="bg-stone-900 text-white shadow-lg sticky top-0 z-40 border-b-2 border-amber-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-amber-500 p-2.5 rounded-lg text-stone-950 font-black text-2xl">QS</div>
+                    <div>
+                        <h1 class="text-xl md:text-2xl font-extrabold text-amber-400 tracking-tight">UR-CST NYARUGENGE QS HUB</h1>
+                        <p class="text-xs text-stone-400">Year 2 Construction Management, Economics & Estimating Portal</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <nav class="hidden lg:flex space-x-1 text-sm font-medium">
+                    <button onclick="switchTab('economics')" id="nav-economics" class="nav-btn px-3 py-2 rounded-md bg-amber-500 text-stone-950 font-bold">📊 Economics & Mgmt</button>
+                    <button onclick="switchTab('takeoff')" id="nav-takeoff" class="nav-btn px-3 py-2 rounded-md hover:bg-stone-800 text-stone-300">📐 SMM & Takeoff</button>
+                    <button onclick="switchTab('quizzes')" id="nav-quizzes" class="nav-btn px-3 py-2 rounded-md hover:bg-stone-800 text-stone-300">📝 Quizzes & Marks</button>
+                    <button onclick="switchTab('materials')" id="nav-materials" class="nav-btn px-3 py-2 rounded-md hover:bg-stone-800 text-stone-300">📁 Materials & Uploads</button>
+                    <button onclick="switchTab('contact')" id="nav-contact" class="nav-btn px-3 py-2 rounded-md hover:bg-stone-800 text-stone-300">📞 Contact & Info</button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Bar -->
+        <div class="lg:hidden flex overflow-x-auto border-t border-stone-800 text-xs px-2 py-2 space-x-2 bg-stone-950">
+            <button onclick="switchTab('economics')" id="mob-nav-economics" class="mob-nav-btn px-3 py-1.5 rounded bg-amber-500 text-stone-950 font-bold whitespace-nowrap">📊 Economics</button>
+            <button onclick="switchTab('takeoff')" id="mob-nav-takeoff" class="mob-nav-btn px-3 py-1.5 rounded bg-stone-800 text-stone-300 whitespace-nowrap">📐 SMM Takeoff</button>
+            <button onclick="switchTab('quizzes')" id="mob-nav-quizzes" class="mob-nav-btn px-3 py-1.5 rounded bg-stone-800 text-stone-300 whitespace-nowrap">📝 Quizzes</button>
+            <button onclick="switchTab('materials')" id="mob-nav-materials" class="mob-nav-btn px-3 py-1.5 rounded bg-stone-800 text-stone-300 whitespace-nowrap">📁 Materials</button>
+            <button onclick="switchTab('contact')" id="mob-nav-contact" class="mob-nav-btn px-3 py-1.5 rounded bg-stone-800 text-stone-300 whitespace-nowrap">📞 Contact</button>
+        </div>
+    </header>
+
+    <!-- App Body Container -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ================= TAB 1: ECONOMICS & CONSTRUCTION MANAGEMENT ================= -->
+        <section id="tab-economics" class="tab-content space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-stone-900">Construction Management & Economics Portal</h2>
+                        <p class="mt-1 text-stone-600 text-sm">
+                            Year 2 Quantity Surveying module exploring financial appraisal, project lifecycle costing (LCC), cash flow forecasting, and preliminary estimating techniques at CST Nyarugenge.
+                        </p>
+                    </div>
+                    <span class="mt-3 md:mt-0 text-xs font-semibold bg-amber-100 text-amber-900 px-3 py-1.5 rounded-full border border-amber-300">
+                        Module: QS201 Construction Economics
+                    </span>
+                </div>
+            </div>
+
+            <!-- Financial Appraisal & Cash Flow Calculators -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- NPV / Life Cycle Cost Calculator -->
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-900 flex items-center space-x-2">
+                            <span>🧮</span>
+                            <span>Net Present Value (NPV) & LCC Evaluator</span>
+                        </h3>
+                        <p class="text-xs text-stone-500 mt-1">Calculate discounting factor and viability of construction capital projects.</p>
+                        
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <div>
+                                <label class="block text-[11px] font-bold text-stone-700 uppercase">Capital Outlay ($)</label>
+                                <input type="number" id="econ-outlay" value="250000" class="w-full p-2 text-xs border rounded border-stone-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-stone-700 uppercase">Discount Rate (%)</label>
+                                <input type="number" id="econ-rate" value="10" step="0.5" class="w-full p-2 text-xs border rounded border-stone-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-stone-700 uppercase">Annual Revenue ($)</label>
+                                <input type="number" id="econ-revenue" value="65000" class="w-full p-2 text-xs border rounded border-stone-300">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-stone-700 uppercase">Project Life (Years)</label>
+                                <input type="number" id="econ-years" value="5" max="15" class="w-full p-2 text-xs border rounded border-stone-300">
+                            </div>
+                        </div>
+
+                        <button onclick="calculateNPV()" class="mt-4 w-full bg-stone-900 hover:bg-stone-800 text-amber-400 text-xs font-bold py-2 rounded">
+                            Compute NPV & Feasibility
+                        </button>
+                    </div>
+
+                    <div id="npv-result-box" class="mt-4 bg-stone-50 p-3 rounded border border-stone-200 text-xs">
+                        <div class="flex justify-between font-bold text-stone-800">
+                            <span>Project Net Present Value:</span>
+                            <span id="npv-val" class="font-mono text-emerald-700">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-stone-600 mt-1">
+                            <span>Status:</span>
+                            <span id="npv-status" class="font-semibold text-emerald-800">Feasible</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Cash Flow S-Curve Visualizer -->
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-900">Project Cash Flow S-Curve Projection</h3>
+                        <p class="text-xs text-stone-500 mt-0.5">Cumulative expenditure modeling vs monthly valuations.</p>
+                    </div>
+                    <div class="chart-container my-3">
+                        <canvas id="cashflowChart"></canvas>
+                    </div>
+                    <div class="text-[11px] text-stone-500 bg-amber-50/50 p-2 rounded border border-amber-200">
+                        💡 <strong>QS Rule:</strong> Construction cash outflow peaks around the mid-point of structural works (30% to 70% duration).
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Management Frameworks Grid -->
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h3 class="text-lg font-bold text-stone-900 mb-4">Core Year 2 Construction Management Concepts</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="p-4 rounded-lg border border-amber-200 bg-amber-50/40">
+                        <h4 class="font-bold text-amber-900">1. Procurement & Tendering</h4>
+                        <p class="mt-1 text-xs text-stone-600 leading-relaxed">
+                            Selection of procurement routes (Traditional, Design & Build, Management Contracting) based on client risk allocation and speed required.
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-lg border border-stone-200 bg-stone-50">
+                        <h4 class="font-bold text-stone-900">2. Valuation & Interim Certificates</h4>
+                        <p class="mt-1 text-xs text-stone-600 leading-relaxed">
+                            Monthly measurements on site to quantify work in progress, incorporating retention deductions (5%) and materials on site allowances.
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-lg border border-emerald-200 bg-emerald-50/40">
+                        <h4 class="font-bold text-emerald-900">3. Variation & Final Account</h4>
+                        <p class="mt-1 text-xs text-stone-600 leading-relaxed">
+                            Valuing additions and omissions against original BoQ rates, Dayworks, and adjusting Prime Cost and Provisional sums.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: SMM & TAKEOFF TOOLKIT ================= -->
+        <section id="tab-takeoff" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-stone-900">Standard Method of Measurement (SMM) Takeoff Center</h2>
+                <p class="mt-1 text-stone-600 text-sm">
+                    Interactive takeoff tools and standard measurement rules for Year 2 Quantity Surveying students. Practice calculating net wall girths and measuring structural items.
+                </p>
+            </div>
+
+            <!-- Live 2D Centerline Wall Calculator -->
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-stone-200 pb-4 mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-stone-900 flex items-center space-x-2">
+                            <span>📐</span>
+                            <span>Interactive Centerline Wall Girth Calculator</span>
+                        </h3>
+                        <p class="text-xs text-stone-500 mt-1">Compute accurate mean wall perimeter deducting internal overlapping corners.</p>
+                    </div>
+                    <span class="mt-2 md:mt-0 font-mono text-xs bg-stone-100 text-stone-700 px-3 py-1 rounded-full border">
+                        Girth = 2(L + B) - (4 × Wall Thickness)
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-5 space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 uppercase">External Length L (m)</label>
+                            <input type="number" id="wall-length" value="14.50" step="0.1" class="w-full p-2 border rounded border-stone-300 text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 uppercase">External Width B (m)</label>
+                            <input type="number" id="wall-width" value="9.00" step="0.1" class="w-full p-2 border rounded border-stone-300 text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 uppercase">Wall Thickness t (m)</label>
+                            <input type="number" id="wall-thick" value="0.225" step="0.025" class="w-full p-2 border rounded border-stone-300 text-sm font-semibold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-stone-700 uppercase">Wall Height H (m)</label>
+                            <input type="number" id="wall-height" value="3.20" step="0.1" class="w-full p-2 border rounded border-stone-300 text-sm font-semibold">
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-7 bg-stone-50 p-5 rounded-lg border border-stone-200 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-xs font-bold text-stone-800 uppercase tracking-wider border-b pb-2">Takeoff Sheet Output</h4>
+                            <div class="mt-3 space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-stone-600">Out-to-Out Perimeter:</span>
+                                    <span id="res-oto" class="font-mono font-bold">47.00 m</span>
+                                </div>
+                                <div class="flex justify-between text-rose-600">
+                                    <span>Corner Deductions (4 × t):</span>
+                                    <span id="res-ded" class="font-mono font-bold">-0.90 m</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2 text-base font-bold text-amber-900">
+                                    <span>Net Centerline Girth:</span>
+                                    <span id="res-girth" class="font-mono text-amber-700">46.10 m</span>
+                                </div>
+                                <div class="flex justify-between bg-white p-2.5 rounded border border-stone-200 mt-2 font-bold text-emerald-800">
+                                    <span>Gross Wall Masonry Area:</span>
+                                    <span id="res-area" class="font-mono">147.52 m²</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-[11px] text-amber-900 bg-amber-100/70 p-2.5 rounded">
+                            📌 <strong>SMM Note:</strong> Deduct openings (doors/windows) over 0.50 m² from this gross area.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMM Reference Guide -->
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h3 class="text-lg font-bold text-stone-900 mb-3">SMM Measurement Units Quick Guide</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                        <span class="font-bold text-amber-800 block text-sm">Excavation</span>
+                        <span class="font-mono text-stone-600">Unit: m³</span>
+                        <p class="text-[10px] text-stone-500 mt-1">Stated in 1.5m depth stages.</p>
+                    </div>
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                        <span class="font-bold text-amber-800 block text-sm">Concrete</span>
+                        <span class="font-mono text-stone-600">Unit: m³</span>
+                        <p class="text-[10px] text-stone-500 mt-1">Categorized by thickness and mix.</p>
+                    </div>
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                        <span class="font-bold text-amber-800 block text-sm">Formwork</span>
+                        <span class="font-mono text-stone-600">Unit: m²</span>
+                        <p class="text-[10px] text-stone-500 mt-1">Net contact surface area.</p>
+                    </div>
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                        <span class="font-bold text-amber-800 block text-sm">Reinforcement</span>
+                        <span class="font-mono text-stone-600">Unit: Tonnes / kg</span>
+                        <p class="text-[10px] text-stone-500 mt-1">Grouped by bar diameter.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: QUIZZES & MARKS HUB ================= -->
+        <section id="tab-quizzes" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-stone-900">Quiz & Assessment Management Hub</h2>
+                    <p class="mt-1 text-stone-600 text-sm">
+                        Students can test their Year 2 QS knowledge. Developers & Faculty can add new quizzes and manage student marks.
+                    </p>
+                </div>
+                <div class="mt-3 md:mt-0 flex space-x-2">
+                    <button onclick="toggleQuizView('take')" id="btn-view-take" class="px-3 py-1.5 rounded text-xs font-bold bg-amber-500 text-stone-950">Take Quizzes</button>
+                    <button onclick="toggleQuizView('admin')" id="btn-view-admin" class="px-3 py-1.5 rounded text-xs font-bold bg-stone-800 text-stone-200">Developer/Admin View</button>
+                </div>
+            </div>
+
+            <!-- STUDENT VIEW: TAKE QUIZ -->
+            <div id="quiz-student-panel" class="space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <div class="flex justify-between items-center border-b pb-4 mb-4">
+                        <h3 class="text-lg font-bold text-stone-900" id="quiz-title-display">Year 2 QS Practice Quiz #1</h3>
+                        <span id="quiz-score-badge" class="text-xs font-bold bg-stone-100 text-stone-800 px-3 py-1 rounded-full border">Score: -- / --</span>
+                    </div>
+
+                    <div id="active-quiz-container" class="space-y-6">
+                        <!-- Questions dynamically loaded -->
+                    </div>
+
+                    <button onclick="submitStudentQuiz()" class="mt-6 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold px-6 py-2.5 rounded-lg text-sm transition">
+                        Submit Quiz Answers
+                    </button>
+                </div>
+            </div>
+
+            <!-- DEVELOPER / ADMIN PANEL: ADD QUIZ & LOG MARKS -->
+            <div id="quiz-admin-panel" class="hidden space-y-6">
+                <!-- Developer Add Quiz Form -->
+                <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-800 shadow-lg">
+                    <h3 class="text-lg font-bold text-amber-400 flex items-center space-x-2">
+                        <span>🛠️</span>
+                        <span>Developer / Faculty Panel: Create New Quiz Question</span>
+                    </h3>
+                    <p class="text-xs text-stone-400 mt-1">Add custom questions to the student portal database.</p>
+
+                    <div class="mt-4 space-y-3 text-stone-800 text-xs">
+                        <div>
+                            <label class="block font-bold text-stone-300 uppercase mb-1">Question Text</label>
+                            <input type="text" id="dev-q-text" placeholder="e.g. How is formwork measured in SMM?" class="w-full p-2.5 rounded border border-stone-700 bg-stone-800 text-white">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-stone-300 uppercase mb-1">Option A</label>
+                                <input type="text" id="dev-q-a" placeholder="Option A" class="w-full p-2 rounded border border-stone-700 bg-stone-800 text-white">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-stone-300 uppercase mb-1">Option B</label>
+                                <input type="text" id="dev-q-b" placeholder="Option B" class="w-full p-2 rounded border border-stone-700 bg-stone-800 text-white">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-stone-300 uppercase mb-1">Option C</label>
+                                <input type="text" id="dev-q-c" placeholder="Option C" class="w-full p-2 rounded border border-stone-700 bg-stone-800 text-white">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-stone-300 uppercase mb-1">Option D</label>
+                                <input type="text" id="dev-q-d" placeholder="Option D" class="w-full p-2 rounded border border-stone-700 bg-stone-800 text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-300 uppercase mb-1">Correct Answer Index (0 for A, 1 for B, 2 for C, 3 for D)</label>
+                            <input type="number" id="dev-q-correct" min="0" max="3" value="0" class="w-24 p-2 rounded border border-stone-700 bg-stone-800 text-white">
+                        </div>
+
+                        <button onclick="addDeveloperQuestion()" class="mt-2 bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold px-4 py-2 rounded text-xs">
+                            ➕ Save & Publish Question
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Marks Table Record -->
+                <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-stone-900 mb-3">Recorded Student Marks & Submissions</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-stone-800 text-white">
+                                    <th class="p-2.5 rounded-tl">Student Name</th>
+                                    <th class="p-2.5">Reg Number</th>
+                                    <th class="p-2.5">Quiz Module</th>
+                                    <th class="p-2.5">Score Marks</th>
+                                    <th class="p-2.5 rounded-tr">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marks-table-body" class="divide-y divide-stone-200 text-stone-700">
+                                <tr>
+                                    <td class="p-2.5 font-bold">Jean Paul Nshimiye</td>
+                                    <td class="p-2.5 font-mono">221045892</td>
+                                    <td class="p-2.5">SMM Measurement Test</td>
+                                    <td class="p-2.5 font-bold text-emerald-700">85% (12/14)</td>
+                                    <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Passed</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2.5 font-bold">Aline Mukamana</td>
+                                    <td class="p-2.5 font-mono">221089123</td>
+                                    <td class="p-2.5">Construction Economics NPV</td>
+                                    <td class="p-2.5 font-bold text-amber-700">70% (10/14)</td>
+                                    <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">Passed</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: MATERIALS & UPLOADS ================= -->
+        <section id="tab-materials" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-stone-900">Year 2 QS Learning Materials & File Hub</h2>
+                <p class="mt-1 text-stone-600 text-sm">
+                    Access architectural drawings, Bills of Quantities templates, lecture notes, and construction site images.
+                </p>
+            </div>
+
+            <!-- Upload Zone (Developer / Faculty Feature) -->
+            <div class="bg-stone-900 text-white p-6 rounded-xl border border-stone-800 shadow-sm">
+                <h3 class="text-base font-bold text-amber-400 flex items-center space-x-2">
+                    <span>📤</span>
+                    <span>Developer / Faculty Materials & Image Uploader</span>
+                </h3>
+                <p class="text-xs text-stone-400 mt-1">Upload lecture notes, BoQs, structural drawings, or site images for Year 2 QS students.</p>
+
+                <div class="mt-4 border-2 border-dashed border-stone-700 rounded-xl p-6 text-center hover:border-amber-500 transition bg-stone-950/50">
+                    <span class="text-3xl block">📁</span>
+                    <p class="text-xs text-stone-300 mt-2">Drag & drop construction files or site photos here, or click to browse</p>
+                    <input type="file" id="file-uploader" multiple onchange="handleFileUpload(event)" class="mt-3 text-xs text-stone-400 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-stone-950 hover:file:bg-amber-400 cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Document & Media Repository Grid -->
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h3 class="text-lg font-bold text-stone-900 mb-4">Available Course Files & Site Gallery</h3>
+                
+                <div id="file-gallery-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <div class="p-4 rounded-lg border border-stone-200 bg-stone-50 flex items-start space-x-3">
+                        <span class="text-2xl">📄</span>
+                        <div>
+                            <h4 class="font-bold text-stone-900 text-xs">SMM7 Standard Rules Guide.pdf</h4>
+                            <p class="text-[10px] text-stone-500">2.4 MB • Measurement Guidelines</p>
+                            <button onclick="alert('Downloading SMM7 Guide...')" class="mt-2 text-amber-700 font-bold text-[11px] hover:underline">Download File</button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-lg border border-stone-200 bg-stone-50 flex items-start space-x-3">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <h4 class="font-bold text-stone-900 text-xs">Standard BoQ Template (Excel).xlsx</h4>
+                            <p class="text-[10px] text-stone-500">1.1 MB • Estimating Worksheet</p>
+                            <button onclick="alert('Downloading BoQ Template...')" class="mt-2 text-amber-700 font-bold text-[11px] hover:underline">Download File</button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-lg border border-stone-200 bg-stone-50 flex items-start space-x-3">
+                        <span class="text-2xl">🖼️</span>
+                        <div>
+                            <h4 class="font-bold text-stone-900 text-xs">Foundation Excavation Site Photo.jpg</h4>
+                            <p class="text-[10px] text-stone-500">3.8 MB • Nyarugenge Site Visit</p>
+                            <button onclick="alert('Opening image preview...')" class="mt-2 text-amber-700 font-bold text-[11px] hover:underline">View Picture</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: CONTACT & ADDRESSES ================= -->
+        <section id="tab-contact" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                <h2 class="text-2xl font-bold text-stone-900">Departmental Contact & Location Info</h2>
+                <p class="mt-1 text-stone-600 text-sm">
+                    Connect with the Quantity Surveying department, faculty lecturers, and platform administrators at UR-CST Nyarugenge Campus.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Address & Info Card -->
+                <div class="lg:col-span-5 bg-stone-900 text-white p-6 rounded-xl border border-stone-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-amber-400 mb-4 border-b border-stone-800 pb-2">UR-CST Nyarugenge Addresses & Contacts</h3>
+                        
+                        <div class="space-y-4 text-xs text-stone-300">
+                            <div class="flex items-start space-x-3">
+                                <span class="text-base">📍</span>
+                                <div>
+                                    <strong class="text-white block">Campus Physical Location:</strong>
+                                    University of Rwanda (UR)<br>
+                                    College of Science and Technology (CST)<br>
+                                    Nyarugenge Campus, KN 7 Ave, Kigali, Rwanda
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <span class="text-base">🏛️</span>
+                                <div>
+                                    <strong class="text-white block">Department:</strong>
+                                    Department of Construction Management & Quantity Surveying
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <span class="text-base">✉️</span>
+                                <div>
+                                    <strong class="text-white block">Official Email Address:</strong>
+                                    <a href="mailto:quantitysurveying80@gmail.com" class="text-amber-400 font-bold hover:underline">quantitysurveying80@gmail.com</a>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <span class="text-base">📞</span>
+                                <div>
+                                    <strong class="text-white block">Contact Hotlines:</strong>
+                                    <div class="mt-1 space-y-1">
+                                        <div><span class="text-amber-400 font-bold">Contact 1 (CP):</span> <a href="tel:0793846279" class="hover:underline">0793846279</a></div>
+                                        <div><span class="text-amber-400 font-bold">Contact 2 (CPN):</span> <a href="tel:+250792523123" class="hover:underline">+250 792 523 123</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-stone-800 text-[11px] text-stone-400">
+                        🌐 Official University Portal: <a href="https://cst.ur.ac.rw" target="_blank" class="text-amber-400 hover:underline">cst.ur.ac.rw</a>
+                    </div>
+                </div>
+
+                <!-- Interactive Contact Form -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-xl border border-stone-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-stone-900 mb-1">Send a Direct Message to QS Lecturers / Developers</h3>
+                    <p class="text-xs text-stone-500 mb-4">Inquire about Year 2 coursework, quiz marks, or portal technical support.</p>
+
+                    <form onsubmit="handleContactSubmit(event)" class="space-y-3 text-xs">
+                        <div>
+                            <label class="block font-bold text-stone-700 uppercase mb-1">Your Full Name</label>
+                            <input type="text" required placeholder="e.g. Eric Manzi" class="w-full p-2.5 border rounded border-stone-300">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-stone-700 uppercase mb-1">Your Email Address</label>
+                                <input type="email" required placeholder="student@cst.ur.ac.rw" class="w-full p-2.5 border rounded border-stone-300">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-stone-700 uppercase mb-1">Registration No. / Phone</label>
+                                <input type="text" placeholder="Reg No. or Phone" class="w-full p-2.5 border rounded border-stone-300">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-700 uppercase mb-1">Subject</label>
+                            <select class="w-full p-2.5 border rounded border-stone-300">
+                                <option>Construction Economics Inquiry</option>
+                                <option>SMM Takeoff Clarification</option>
+                                <option>Quiz Score Correction Request</option>
+                                <option>Developer / Website Feedback</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-stone-700 uppercase mb-1">Message Content</label>
+                            <textarea rows="4" required placeholder="Write your question or feedback here..." class="w-full p-2.5 border rounded border-stone-300"></textarea>
+                        </div>
+                        <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold px-6 py-2.5 rounded text-xs transition">
+                            🚀 Send Message to quantitysurveying80@gmail.com
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Login / Account Creation -->
+    <div id="auth-modal" class="fixed inset-0 bg-stone-950/60 modal-blur hidden items-center justify-center z-50 px-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-stone-200">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 id="modal-title" class="text-lg font-bold text-stone-900">Student Sign In</h3>
+                <button onclick="closeAuthModal()" class="text-stone-400 hover:text-stone-700 font-bold text-lg">✕</button>
+            </div>
+
+            <form onsubmit="handleAuthSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-stone-700 uppercase mb-1">Account Role</label>
+                    <select id="auth-role" class="w-full p-2 border rounded border-stone-300 font-bold text-amber-800">
+                        <option value="Student">UR-CST Student (Year 2 QS)</option>
+                        <option value="Developer / Admin">Developer / Faculty Lecturer</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 uppercase mb-1">Full Name</label>
+                    <input type="text" id="auth-name" required placeholder="Enter your full name" class="w-full p-2.5 border rounded border-stone-300">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 uppercase mb-1">Reg Number / Email</label>
+                    <input type="text" required placeholder="Reg No. or CST email" class="w-full p-2.5 border rounded border-stone-300">
+                </div>
+                <div>
+                    <label class="block font-bold text-stone-700 uppercase mb-1">Password</label>
+                    <input type="password" required placeholder="••••••••" class="w-full p-2.5 border rounded border-stone-300">
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold py-2.5 rounded transition text-xs mt-2">
+                    Enter Portal
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-stone-900 text-stone-400 text-xs py-6 border-t border-stone-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
+            <p class="font-bold text-amber-400">UR-CST NYARUGENGE QS HUB • Quantity Surveying & Construction Management</p>
+            <p>University of Rwanda - College of Science and Technology • Nyarugenge Campus</p>
+            <p class="text-stone-500 text-[11px] pt-1">Email: <a href="mailto:quantitysurveying80@gmail.com" class="text-stone-300 hover:underline">quantitysurveying80@gmail.com</a> | Phones: 0793846279 (CP) / +250 792 523 123 (CPN)</p>
+        </div>
+    </footer>
+
+    <!-- Vanilla JavaScript Application Logic -->
+    <script>
+        // CORE APPLICATION STATE
+        let currentUser = {
+            name: "Guest",
+            role: "Student",
+            isLoggedIn: false
+        };
+
+        let activeQuestions = [
+            {
+                q: "How are excavations for strip foundations measured under standard SMM rules?",
+                options: ["In cubic meters (m³) by 1.5m depth stages", "In linear meters (m) regardless of depth", "In square meters (m²) of surface area", "By total weight in tonnes"],
+                correct: 0
+            },
+            {
+                q: "What is the primary function of holding Retention Money from progress payments?",
+                options: ["To cover contractor fuel expenses", "To act as financial security for defects during DLP", "To pay external consultants", "To fund municipal building permits"],
+                correct: 1
+            },
+            {
+                q: "In Construction Economics, Net Present Value (NPV) evaluates:",
+                options: ["Only initial tender cost", "Discounted cash flows over the project lifecycle", "Scaffolding costs per day", "Architectural fee percentages"],
+                correct: 1
+            }
+        ];
+
+        // NAVIGATION LOGIC
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn px-3 py-2 rounded-md hover:bg-stone-800 text-stone-300";
+            });
+            document.querySelectorAll('.mob-nav-btn').forEach(btn => {
+                btn.className = "mob-nav-btn px-3 py-1.5 rounded bg-stone-800 text-stone-300 whitespace-nowrap";
+            });
+
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) activeBtn.className = "nav-btn px-3 py-2 rounded-md bg-amber-500 text-stone-950 font-bold";
+
+            const mobActiveBtn = document.getElementById(`mob-nav-${tabId}`);
+            if (mobActiveBtn) mobActiveBtn.className = "mob-nav-btn px-3 py-1.5 rounded bg-amber-500 text-stone-950 font-bold whitespace-nowrap";
+        }
+
+        // AUTHENTICATION MODAL LOGIC
+        function openAuthModal(mode) {
+            document.getElementById('auth-modal').classList.remove('hidden');
+            document.getElementById('auth-modal').classList.add('flex');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('flex');
+        }
+
+        function handleAuthSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('auth-name').value;
+            const role = document.getElementById('auth-role').value;
+
+            currentUser = { name, role, isLoggedIn: true };
+
+            document.getElementById('user-display').textContent = `${currentUser.name} (${currentUser.role})`;
+            document.getElementById('btn-auth-action').textContent = "Log Out";
+            document.getElementById('btn-auth-action').onclick = logoutUser;
+
+            closeAuthModal();
+            alert(`Welcome ${currentUser.name}! Logged in successfully as ${currentUser.role}.`);
+        }
+
+        function logoutUser() {
+            currentUser = { name: "Guest", role: "Student", isLoggedIn: false };
+            document.getElementById('user-display').textContent = "Guest User";
+            document.getElementById('btn-auth-action').textContent = "Log In / Sign Up";
+            document.getElementById('btn-auth-action').onclick = () => openAuthModal('login');
+            alert('Logged out successfully.');
+        }
+
+        // CONSTRUCTION ECONOMICS CALCULATOR
+        function calculateNPV() {
+            const outlay = parseFloat(document.getElementById('econ-outlay').value) || 0;
+            const rate = (parseFloat(document.getElementById('econ-rate').value) || 0) / 100;
+            const revenue = parseFloat(document.getElementById('econ-revenue').value) || 0;
+            const years = parseInt(document.getElementById('econ-years').value) || 0;
+
+            let totalPV = 0;
+            for (let t = 1; t <= years; t++) {
+                totalPV += revenue / Math.pow(1 + rate, t);
+            }
+
+            const npv = totalPV - outlay;
+
+            document.getElementById('npv-val').textContent = "$" + npv.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            const statusEl = document.getElementById('npv-status');
+            if (npv >= 0) {
+                statusEl.textContent = "Feasible & Financially Viable (NPV > 0)";
+                statusEl.className = "font-semibold text-emerald-800";
+            } else {
+                statusEl.textContent = "Unfeasible (NPV < 0) - Costs Exceed Discounted Returns";
+                statusEl.className = "font-semibold text-rose-700";
+            }
+        }
+
+        // SMM CENTERLINE TAKEOFF CALCULATOR
+        function updateCenterline() {
+            const L = parseFloat(document.getElementById('wall-length').value) || 0;
+            const B = parseFloat(document.getElementById('wall-width').value) || 0;
+            const t = parseFloat(document.getElementById('wall-thick').value) || 0;
+            const H = parseFloat(document.getElementById('wall-height').value) || 0;
+
+            const oto = 2 * (L + B);
+            const ded = 4 * t;
+            const girth = oto - ded;
+            const area = girth * H;
+
+            document.getElementById('res-oto').textContent = oto.toFixed(2) + " m";
+            document.getElementById('res-ded').textContent = "-" + ded.toFixed(2) + " m";
+            document.getElementById('res-girth').textContent = girth.toFixed(2) + " m";
+            document.getElementById('res-area').textContent = area.toFixed(2) + " m²";
+        }
+
+        // QUIZ SYSTEM LOGIC
+        function toggleQuizView(view) {
+            if (view === 'take') {
+                document.getElementById('quiz-student-panel').classList.remove('hidden');
+                document.getElementById('quiz-admin-panel').classList.add('hidden');
+                document.getElementById('btn-view-take').className = "px-3 py-1.5 rounded text-xs font-bold bg-amber-500 text-stone-950";
+                document.getElementById('btn-view-admin').className = "px-3 py-1.5 rounded text-xs font-bold bg-stone-800 text-stone-200";
+            } else {
+                document.getElementById('quiz-student-panel').classList.add('hidden');
+                document.getElementById('quiz-admin-panel').classList.remove('hidden');
+                document.getElementById('btn-view-admin').className = "px-3 py-1.5 rounded text-xs font-bold bg-amber-500 text-stone-950";
+                document.getElementById('btn-view-take').className = "px-3 py-1.5 rounded text-xs font-bold bg-stone-800 text-stone-200";
+            }
+        }
+
+        function renderStudentQuiz() {
+            const container = document.getElementById('active-quiz-container');
+            container.innerHTML = "";
+
+            activeQuestions.forEach((item, qIdx) => {
+                const qCard = document.createElement('div');
+                qCard.className = "p-4 rounded-lg border border-stone-200 bg-stone-50/50 space-y-2";
+                
+                let optionsHTML = "";
+                item.options.forEach((opt, oIdx) => {
+                    optionsHTML += `
+                        <label class="flex items-center space-x-2 text-xs text-stone-700 cursor-pointer p-2 bg-white rounded border border-stone-200 hover:border-amber-400">
+                            <input type="radio" name="question-${qIdx}" value="${oIdx}" class="accent-amber-600">
+                            <span>${opt}</span>
+                        </label>
+                    `;
+                });
+
+                qCard.innerHTML = `
+                    <div class="font-bold text-stone-900 text-xs">Q${qIdx + 1}: ${item.q}</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">${optionsHTML}</div>
+                `;
+                container.appendChild(qCard);
+            });
+        }
+
+        function submitStudentQuiz() {
+            let score = 0;
+            activeQuestions.forEach((item, qIdx) => {
+                const selected = document.querySelector(`input[name="question-${qIdx}"]:checked`);
+                if (selected && parseInt(selected.value) === item.correct) {
+                    score++;
+                }
+            });
+
+            const pct = Math.round((score / activeQuestions.length) * 100);
+            document.getElementById('quiz-score-badge').textContent = `Score: ${score} / ${activeQuestions.length} (${pct}%)`;
+            alert(`Quiz Submitted!\nYour Score: ${score}/${activeQuestions.length} (${pct}%)`);
+
+            // Add result to marks table automatically
+            if (currentUser.isLoggedIn) {
+                const tbody = document.getElementById('marks-table-body');
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="p-2.5 font-bold">${currentUser.name}</td>
+                    <td class="p-2.5 font-mono">221000999</td>
+                    <td class="p-2.5">Year 2 Practice Quiz</td>
+                    <td class="p-2.5 font-bold text-amber-700">${pct}% (${score}/${activeQuestions.length})</td>
+                    <td class="p-2.5"><span class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-bold">${pct >= 50 ? 'Passed' : 'Failed'}</span></td>
+                `;
+                tbody.prepend(row);
+            }
+        }
+
+        function addDeveloperQuestion() {
+            const text = document.getElementById('dev-q-text').value;
+            const a = document.getElementById('dev-q-a').value;
+            const b = document.getElementById('dev-q-b').value;
+            const c = document.getElementById('dev-q-c').value;
+            const d = document.getElementById('dev-q-d').value;
+            const correct = parseInt(document.getElementById('dev-q-correct').value);
+
+            if (!text || !a || !b) {
+                alert("Please fill in question text and options.");
+                return;
+            }
+
+            activeQuestions.push({
+                q: text,
+                options: [a, b, c, d],
+                correct: correct
+            });
+
+            renderStudentQuiz();
+            alert("New question added to active quiz database!");
+            document.getElementById('dev-q-text').value = "";
+        }
+
+        // FILE UPLOAD HANDLER
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            const grid = document.getElementById('file-gallery-grid');
+            Array.from(files).forEach(file => {
+                const isImg = file.type.startsWith('image/');
+                const card = document.createElement('div');
+                card.className = "p-4 rounded-lg border border-amber-200 bg-amber-50/40 flex items-start space-x-3";
+                card.innerHTML = `
+                    <span class="text-2xl">${isImg ? '🖼️' : '📁'}</span>
+                    <div>
+                        <h4 class="font-bold text-stone-900 text-xs">${file.name}</h4>
+                        <p class="text-[10px] text-stone-500">${(file.size / 1024).toFixed(1)} KB • Developer Upload</p>
+                        <button onclick="alert('Opening uploaded file...')" class="mt-2 text-amber-800 font-bold text-[11px] hover:underline">View Uploaded Material</button>
+                    </div>
+                `;
+                grid.prepend(card);
+            });
+
+            alert(`${files.length} file(s) successfully added to student material repository!`);
+        }
+
+        // CONTACT FORM HANDLER
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            alert("Thank you! Your message has been transmitted to quantitysurveying80@gmail.com.");
+            e.target.reset();
+        }
+
+        // INITIALIZE CHARTS AND EVENT LISTENERS
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Wall listeners
+            ['wall-length', 'wall-width', 'wall-thick', 'wall-height'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateCenterline);
+            });
+
+            // Calculate initial NPV and Girth
+            calculateNPV();
+            updateCenterline();
+
+            // Render default quiz questions
+            renderStudentQuiz();
+
+            // CHART.JS CASH FLOW S-CURVE
+            const ctxCash = document.getElementById('cashflowChart').getContext('2d');
+            new Chart(ctxCash, {
+                type: 'line',
+                data: {
+                    labels: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8'],
+                    datasets: [
+                        {
+                            label: 'Cumulative Cash Flow ($)',
+                            data: [10000, 30000, 75000, 140000, 210000, 260000, 285000, 300000],
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Monthly Valuation ($)',
+                            data: [10000, 20000, 45000, 65000, 70000, 50000, 25000, 15000],
+                            borderColor: '#10b981',
+                            borderDash: [5, 5],
+                            tension: 0.2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
